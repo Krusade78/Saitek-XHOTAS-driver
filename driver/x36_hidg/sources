@@ -1,0 +1,18 @@
+TARGETNAME=x36_hidg
+TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
+TARGETPATH=obj
+C_DEFINES = $(C_DEFINES) /DPRO
+
+TARGETLIBS=$(DDK_LIB_PATH)\hidclass.lib
+
+SOURCES=hidgame.c       \
+		hidjoy.c	\
+		ioctl.c		\
+		pnp.c		\
+		pnp_joyinit.c \
+		poll.c		\
+		request.c   \
+        hidgame.rc
+
+i386_SOURCES=i386\timing.c

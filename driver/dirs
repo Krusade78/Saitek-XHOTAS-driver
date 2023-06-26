@@ -1,0 +1,13 @@
+DIRS= \
+     x36_hidg \
+     x36_kbf \
+     x36_kbw \
+     x36_kbwf \
+     x36_service \
+     x36_service64 \
+     x45_service \
+     x52_service \
+     xh_cpl \
+     xh_vmd \
+     xh_vmdf \
+     xusb_hid 

@@ -1,0 +1,11 @@
+TARGETNAME=xh_vmd
+TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
+TARGETPATH=obj
+
+TARGETLIBS=$(DDK_LIB_PATH)\hidclass.lib
+
+SOURCES=VHidMini.c \
+	vhidmini.rc \
+	ioctl.c
+

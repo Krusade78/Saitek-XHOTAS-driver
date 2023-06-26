@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\</OutputPath>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <DefineConstants>
+    </DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\</OutputPath>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{64E506FE-C87C-4728-A8F1-6306BD3C7557}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>Sub Main</StartupObject>
+    <RootNamespace>DrvSetup</RootNamespace>
+    <AssemblyName>DrvSetup</AssemblyName>
+    <MyType>WindowsFormsWithCustomSubMain</MyType>
+    <ApplicationIcon>install.ico</ApplicationIcon>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\</OutputPath>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <DefineConstants>
+    </DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\</OutputPath>
+    <Optimize>true</Optimize>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controles instalar\InstalarDriversX36M.designer.vb">
+      <DependentUpon>InstalarDriversX36M.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarDriversX36M.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controles instalar\Instalar1.Designer.vb">
+      <DependentUpon>Instalar1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controles instalar\Instalar1.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarDriversX36G.designer.vb">
+      <DependentUpon>InstalarDriversX36G.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarDriversX36G.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarDriversX36U.designer.vb">
+      <DependentUpon>InstalarDriversX36U.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarDriversX36U.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarGameport.Designer.vb">
+      <DependentUpon>InstalarGameport.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarGameport.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarTeclado.Designer.vb">
+      <DependentUpon>InstalarTeclado.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Controles instalar\InstalarTeclado.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Desinstalar.designer.vb">
+      <DependentUpon>Desinstalar.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Desinstalar.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Form1.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.vb">
+      <DependentUpon>Form1.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Controles instalar\InstalarDriversX36M.resx">
+      <DependentUpon>InstalarDriversX36M.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controles instalar\Instalar1.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>Instalar1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controles instalar\InstalarDriversX36G.resx">
+      <DependentUpon>InstalarDriversX36G.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controles instalar\InstalarDriversX36U.resx">
+      <DependentUpon>InstalarDriversX36U.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controles instalar\InstalarGameport.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>InstalarGameport.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controles instalar\InstalarTeclado.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>InstalarTeclado.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Desinstalar.resx">
+      <DependentUpon>Desinstalar.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form1.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>Form1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\DeleteHS.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\DOWNLOAD_00.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\OK.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\OK.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="install.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

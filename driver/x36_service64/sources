@@ -1,0 +1,15 @@
+TARGETNAME=x36_svc64
+TARGETPATH=obj
+TARGETTYPE=PROGRAM
+UMTYPE=console
+
+USE_MSVCRT=1
+TARGETLIBS=$(SDK_LIB_PATH)\user32.lib
+
+MSC_WARNING_LEVEL=-W3 -WX
+
+SOURCES=ajd_service.rc \
+		servicio.cpp \
+		ajd_service.cpp\
+		joyConfig.cpp 
+

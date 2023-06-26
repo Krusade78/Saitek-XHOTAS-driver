@@ -1,0 +1,5 @@
+LIBRARY	"DrvAPI"
+
+EXPORTS
+	PrepararTeclados	@1
+	PrepararInterfaces	@2

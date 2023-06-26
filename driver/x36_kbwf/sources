@@ -1,0 +1,9 @@
+TARGETNAME=x36_kbwf
+TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
+TARGETPATH=obj
+
+SOURCES=hidfilter.c     \
+        hidfilter.rc	\
+		io.c		\
+		control.c

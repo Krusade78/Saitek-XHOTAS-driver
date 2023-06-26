@@ -1,0 +1,9 @@
+TARGETNAME=xusb_hid
+TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
+TARGETPATH=obj
+
+SOURCES=hidfilter.c     \
+        hidfilter.rc	\
+		ioctl.c			\
+		control.c

@@ -1,0 +1,12 @@
+TARGETNAME=GameEnum
+TARGETTYPE=DRIVER
+DRIVERTYPE=WDM
+
+MSC_WARNING_LEVEL=-W3 -WX
+
+TARGETPATH=obj
+
+SOURCES= gameenum.rc \
+         gameenum.c \
+         pnp.c
+

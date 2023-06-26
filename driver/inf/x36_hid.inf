@@ -1,0 +1,169 @@
+[Version]
+Signature="$Windows NT$"
+Class=HIDClass
+ClassGuid={745a17a0-74d3-11d0-b6fe-00a0c90f57da}
+Provider="Alfredo Costalago"
+LayoutFile=layout.inf
+DriverVer=6/15/2008,6.0.0.0
+
+[SourceDisksFiles]
+x36_kbw.sys = 1
+x36_kbwf.sys = 1
+x36_hidg.sys = 1
+x36_kbf.sys = 1
+x36_svc.exe = 1
+x36_svc64.exe = 1
+
+[SourceDisksNames]
+1 = %DISK_NAME%,,,
+
+[DestinationDirs]
+DefaultDestDir = 12
+WCopyFilesDLL = 11
+
+
+[ControlFlags]
+ExcludeFromSelect  = HID\NullX36WrapperHIDDevice
+
+[Manufacturer]
+%StdMfg%=Standard,NTAMD64
+
+[Standard]
+%WrapperMini%    = wrapperMini.Inst, VHID\X36WrapperMinidriver
+%WrapperDevice%  = wrapperDevice.Inst,  HID\NullX36WrapperHIDDevice
+
+[Standard.NTAMD64]
+%WrapperMini%   = wrapperMini.Inst, VHID\X36WrapperMinidriver
+%WrapperDevice% = wrapperDevice.Inst,  HID\NullX36WrapperHIDDevice
+
+
+
+;===============================================================
+;   wrapperMini (Root Enumerated Hid Device) install section
+;===============================================================
+[wrapperMini.Inst.NT]
+CopyFiles = WCopyFilesSYS, WCopyFilesDLL
+
+[wrapperMini.Inst.NTAMD64]
+CopyFiles = WCopyFilesSYS, WCopyFilesDLL64
+
+[WCopyFilesSYS]
+x36_kbw.sys
+x36_kbwf.sys
+x36_hidg.sys
+x36_kbf.sys
+HidClass.sys
+HidParse.sys
+
+[WCopyFilesDLL]
+Hid.dll
+x36_svc.exe
+
+[WCopyFilesDLL64]
+Hid.dll
+x36_svc64.exe
+
+[wrapperMini.Inst.NT.HW]
+AddReg = wrapperMini_Parameters.AddReg 
+AddReg = Analog.AddReg
+
+[wrapperMini_Parameters.AddReg]
+HKR,,"LowerFilters",0x00010000,"X36WrapperFilter"
+
+[Analog.AddReg]
+HKLM,%KEY_OEM%\VID_06A3&PID_3635,OEMName,,"Saitek X36+X35 gameport"
+HKLM,%KEY_OEM%\VID_06A3&PID_3635,OEMData,1, 0x17, 0, 0x0c, 0, 0x18, 0, 0, 0
+HKLM,%KEY_OEM%\VID_06A3&PID_3635,OEMHardwareID,,"GamePort\VID_06A3&PID_3635"
+
+HKLM,%KEY_OEM%\VID_06A3&PID_3600,OEMName,,"Saitek X36 gameport"
+HKLM,%KEY_OEM%\VID_06A3&PID_3600,OEMData,1, 0x16, 0, 4, 0, 0x0e, 0, 0, 0
+HKLM,%KEY_OEM%\VID_06A3&PID_3600,OEMHardwareID,,"GamePort\VID_06A3&PID_3600"
+
+
+[wrapperMini.Inst.NT.Services]
+AddService = X36Wrapper,0x00000002,wrappermini_Service_Inst
+AddService = X36WrapperFilter,,wrapperminifilter_Service_Inst
+AddService = X36KbFilter,, x36_Filter_Service_Inst
+AddService = HidUserService,, hid_UserService_InstX
+
+[wrapperMini.Inst.NTAMD64.Services]
+AddService = X36Wrapper,0x00000002,wrappermini_Service_Inst
+AddService = X36WrapperFilter,,wrapperminifilter_Service_Inst
+AddService = X36KbFilter,, x36_Filter_Service_Inst
+AddService = HidUserService,, hid_UserService_InstX64
+
+[wrappermini_Service_Inst]
+DisplayName    = %wrapperMini.svc%
+ServiceType    = 1
+StartType      = 3
+ErrorControl   = 0
+ServiceBinary  = %12%\x36_kbw.sys 
+
+[wrapperminifilter_Service_Inst]
+DisplayName    = %wrapperMinifilter.svc%
+ServiceType    = 1
+StartType      = 3
+ErrorControl   = 0
+ServiceBinary  = %12%\x36_kbwf.sys
+Dependencies   = X36Wrapper
+
+[x36_Filter_Service_Inst]
+DisplayName    = %x36filter.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+LoadOrderGroup = Keyboard Port
+ServiceBinary  = %12%\x36_kbf.sys
+Dependencies   = X36WrapperFilter
+
+[hid_UserService_InstX]
+DisplayName    = %x36svc.SvcDesc%
+ServiceType    = 0x00000110         
+StartType      = 0x2                
+ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+ServiceBinary  = %11%\x36_svc.exe
+
+[hid_UserService_InstX64]
+DisplayName    = %x36svc.SvcDesc%
+ServiceType    = 0x00000110         
+StartType      = 0x2                
+ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+ServiceBinary  = %11%\x36_svc64.exe
+
+;===============================================================
+;   Devices virtuales install section
+; - Only a Null service is installed.
+;===============================================================
+[wrapperDevice.Inst]
+
+[wrapperDevice.Inst.NT]
+
+[wrapperDevice.Inst.NT.Services]
+AddService = ,0x00000002,   ; NULL Service
+
+
+
+;================================================================
+[Strings] 
+StdMfg		= "(Standard system devices)"
+WrapperMini       = "X36 Keyboard wrapper" 
+WrapperDevice     = "X36 Wrapper Virtual device" 
+wrapperMini.svc       = "X36 Wrapper HID service" 
+wrapperMinifilter.svc = "X36 Wrapper HID filter"
+x36svc.SvcDesc		= "X36 Driver service"
+x36filter.SvcDesc	= "X36 Keyboard filter"
+
+KEY_OEM="SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\OEM"
+DISK_NAME      = "XHOTAS driver - Disk #1"
+
+[Strings.000a]
+
+StdMfg		= "(Dispositivos de sistema estándar)"
+WrapperMini       = "Dispositivo de pasarela de teclado para X36"
+WrapperDevice     = "Dispositivo virtual de pasarela para X36" 
+wrapperMini.svc       = "Servicio HID de pasarela para X36" 
+wrapperMinifilter.svc = "Filtro HID de la pasarela para X36"
+x36svc.SvcDesc		= "Servicio del controlador X36"
+x36filter.SvcDesc	= "Filtro de teclado para X36"
+KEY_OEM="SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\OEM"
+DISK_NAME      = "XHOTAS driver - Disco #1"
