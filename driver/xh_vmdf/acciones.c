@@ -829,11 +829,14 @@ VOID EstadoX52(IN PVOID Context)
 
 	if(!devExt->finUSB) {
 		NTSTATUS st = STATUS_SUCCESS;
-		if(devExt->ufo == NULL) {
+		PDEVICE_OBJECT udo = NULL;
+		PFILE_OBJECT ufo = NULL;
+		//if(devExt->ufo == NULL)
+		{
 			//=========================== Filtro USB =========================================
 			UNICODE_STRING devname;
 			RtlInitUnicodeString(&devname,L"\\Device\\XUsb_HidF");
-			st = IoGetDeviceObjectPointer(&devname,GENERIC_WRITE,&devExt->ufo,&devExt->udo);
+			st = IoGetDeviceObjectPointer(&devname,GENERIC_WRITE, &ufo, &udo); //&devExt->ufo,&devExt->udo);
 			//================================================================================
 		}
 		if(NT_SUCCESS(st) && (KeGetCurrentIrql()<=APC_LEVEL)) { 
@@ -848,14 +851,16 @@ VOID EstadoX52(IN PVOID Context)
 			//KeReleaseSpinLock(&devExt->slGameData, irql);
 
 			KeInitializeEvent(&IoctlCompleteEvent, NotificationEvent, FALSE);
-			pIrp=IoBuildDeviceIoControlRequest(IOCTL_ESTADO_USB,devExt->udo,&params,sizeof(HID_INPUT_DATA),NULL,0,TRUE,&IoctlCompleteEvent,&IoStatus);
+			pIrp=IoBuildDeviceIoControlRequest(IOCTL_ESTADO_USB,/*devExt->*/udo,&params,sizeof(HID_INPUT_DATA),NULL,0,TRUE,&IoctlCompleteEvent,&IoStatus);
 			if(pIrp!=NULL)
 			{
-				st = IoCallDriver(devExt->udo, pIrp);
+				st = IoCallDriver(/*devExt->*/udo, pIrp);
 				if (st == STATUS_PENDING) {
 					KeWaitForSingleObject(&IoctlCompleteEvent,Executive,KernelMode,FALSE,NULL);
 				}
 			}
+
+			ObDereferenceObject(ufo); ufo=NULL;
 		}
 	}
 
@@ -895,11 +900,14 @@ VOID EnviarX52(IN PVOID Context)
 
 	if(!devExt->finUSB) {
 		NTSTATUS st = STATUS_SUCCESS;
-		if(devExt->ufo == NULL) {
+		PDEVICE_OBJECT udo = NULL;
+		PFILE_OBJECT ufo = NULL;
+		//if(devExt->ufo == NULL)
+		{
 			//=========================== Filtro USB =========================================
 			UNICODE_STRING devname;
 			RtlInitUnicodeString(&devname,L"\\Device\\XUsb_HidF");
-			st = IoGetDeviceObjectPointer(&devname,GENERIC_WRITE,&devExt->ufo,&devExt->udo);
+			st = IoGetDeviceObjectPointer(&devname,GENERIC_WRITE,&/*devExt->*/ufo,&/*devExt->*/udo);
 			//================================================================================
 		}
 		if(NT_SUCCESS(st) && (KeGetCurrentIrql()<=APC_LEVEL)) { 
@@ -934,15 +942,17 @@ VOID EnviarX52(IN PVOID Context)
 
 
 			KeInitializeEvent(&IoctlCompleteEvent, NotificationEvent, FALSE);
-			pIrp=IoBuildDeviceIoControlRequest(ctlCode,devExt->udo,params,tam,NULL,0,FALSE,&IoctlCompleteEvent,&IoStatus);
+			pIrp=IoBuildDeviceIoControlRequest(ctlCode,/*devExt->*/udo,params,tam,NULL,0,FALSE,&IoctlCompleteEvent,&IoStatus);
 
 			if(pIrp!=NULL)
 			{
-				st = IoCallDriver(devExt->udo, pIrp);
+				st = IoCallDriver(/*devExt->*/udo, pIrp);
 				//if (st == STATUS_PENDING) {
 				//	KeWaitForSingleObject(&IoctlCompleteEvent,Executive,KernelMode,FALSE,NULL);
 				//}
 			}
+
+			ObDereferenceObject(ufo); ufo=NULL;
 		}
 	}
 

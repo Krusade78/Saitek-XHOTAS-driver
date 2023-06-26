@@ -10,7 +10,7 @@ Copyright (c) 2005-2007  Alfredo Costalago
 #include <ntverp.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,0,0,0
+ FILEVERSION 3,0,0,1
  PRODUCTVERSION 6,0,0,0
  FILEFLAGSMASK VER_FILEFLAGSMASK
  FILEFLAGS VS_FF_PRIVATEBUILD//VS_FF_PRERELEASE
@@ -23,7 +23,7 @@ BEGIN
         BLOCK "040004b0"
         BEGIN
             VALUE "FileDescription", "Hid gameport minidriver"
-            VALUE "FileVersion", "3.0.0.0"
+            VALUE "FileVersion", "3.0.0.1"
             VALUE "InternalName", "x36_hidg.sys"
             VALUE "LegalCopyright", "© Alfredo Costalago. All rights reserved"
             VALUE "OriginalFilename", "hidgame.sys"

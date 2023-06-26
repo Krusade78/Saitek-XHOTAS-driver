@@ -3,12 +3,13 @@ Copyright (c) 2005-2007 Alfredo Costalago
 --*/
 
 #include <windows.h>
+#include <aclapi.h>
 #include "servicio.h"
 
 SERVICE_STATUS          svEstado; 
 SERVICE_STATUS_HANDLE   svHandle; 
 CServicio* serv=NULL;
-HWND hWnd = NULL;
+HANDLE hSalir = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 void  InicioServicio (DWORD argc, LPTSTR *argv);
 DWORD WINAPI ServicioCtrlHandler(
@@ -24,10 +25,7 @@ void _cdecl main()
 		{{"HidUserService",(LPSERVICE_MAIN_FUNCTION)InicioServicio},
 		{NULL, NULL}};
 
-	if (!StartServiceCtrlDispatcher( DispatchTable)) 
-    { 
-		MessageBox(NULL,"StartServiceCtrlDispatcher error","[X52-Service]",MB_SERVICE_NOTIFICATION|MB_ICONSTOP);
-    } 
+	StartServiceCtrlDispatcher( DispatchTable);
 } 
 
 
@@ -49,7 +47,7 @@ void InicioServicio (DWORD argc, LPTSTR *argv)
  
     if (svHandle == (SERVICE_STATUS_HANDLE)0) 
     { 
-		MessageBox(NULL,"RegisterServiceCtrlHandler error","[X52-Service]",MB_SERVICE_NOTIFICATION|MB_ICONSTOP);
+		CloseHandle(hSalir);
         return; 
     }
 
@@ -63,6 +61,7 @@ void InicioServicio (DWORD argc, LPTSTR *argv)
  
         SetServiceStatus (svHandle, &svEstado); 
 
+		CloseHandle(hSalir);
         return; 
 	}
 
@@ -87,51 +86,89 @@ void InicioServicio (DWORD argc, LPTSTR *argv)
  
     if (!SetServiceStatus (svHandle, &svEstado)) 
     { 
-		MessageBox(NULL,"SetServiceStatus error","[X52-Service]",MB_SERVICE_NOTIFICATION|MB_ICONSTOP);
 		delete serv; serv=NULL;
+		CloseHandle(hSalir);
 		return;
     }
 
-	MSG msg;
-	hWnd=CreateWindow("STATIC",NULL,0,0,0,0,0,NULL,NULL,NULL,NULL);
-	UINT call=RegisterWindowMessage("x52servicemsg");
+
 	bool salir=false;
-	SetTimer(hWnd,1,2000,0);
-	while(GetMessage(&msg,NULL,0,0)!=0) {
-		switch(msg.message) {
-			case WM_QUIT:
-				salir=true;
-				break;
-			case WM_DESTROY:
-				salir=true;
-				break;
-			case WM_TIMECHANGE:
-				KillTimer(hWnd,1);
-				SetTimer(hWnd,1,2000,0);
-				break;
-			case WM_TIMER:
-				serv->Tick();
-				break;
-			default:
-				if(msg.message==call) {
-					switch(msg.wParam) {
-						case 0:
-							salir=true;
-							break;
-						case 1:
-							serv->horaActiva=msg.lParam?true:false;
-							break;
-						case 2:
-							serv->fechaActiva=msg.lParam?true:false;
-							break;
-						case 3:
-							serv->CargarConfiguracion();
-					}
-				}
+	PSID pEveryoneSID = NULL, pSIDAdmin = NULL;
+	PACL pACL = NULL;
+	PSECURITY_DESCRIPTOR pSD = NULL;
+	SECURITY_ATTRIBUTES sa;
+		sa.nLength = sizeof(sa);
+		sa.bInheritHandle = FALSE;
+		sa.lpSecurityDescriptor = NULL; 
+
+	SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
+	if(AllocateAndInitializeSid(&SIDAuthWorld, 1, SECURITY_WORLD_RID, 0, 0, 0, 0, 0, 0, 0, &pEveryoneSID))
+	{
+		SID_IDENTIFIER_AUTHORITY SIDAuthNT = SECURITY_NT_AUTHORITY;
+		if(AllocateAndInitializeSid(&SIDAuthNT, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &pSIDAdmin))
+		{
+			EXPLICIT_ACCESS ea[2] = {0};
+
+			//First Everyone
+			ea[0].grfAccessPermissions = GENERIC_ALL;
+			ea[0].grfAccessMode = SET_ACCESS;
+			ea[0].grfInheritance= NO_INHERITANCE;
+			ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+			ea[0].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
+			ea[0].Trustee.ptstrName  = (LPTSTR)pEveryoneSID;
+
+			//Then admin
+			ea[1].grfAccessPermissions = GENERIC_ALL;
+			ea[1].grfAccessMode = SET_ACCESS;
+			ea[1].grfInheritance= NO_INHERITANCE;
+			ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
+			ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+			ea[1].Trustee.ptstrName  = (LPTSTR)pSIDAdmin; 
+
+			SetEntriesInAcl(2, ea, NULL, &pACL);
+
+			pSD = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+			if(pSD)
+			{
+				InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION);
+
+				//Add the ACL to the security descriptor
+				SetSecurityDescriptorDacl(pSD, TRUE, pACL, FALSE);
+				sa.lpSecurityDescriptor = pSD; 
+			}
 		}
-		if(salir) break;
 	}
-	DestroyWindow(hWnd);
+
+	HANDLE hTimer = CreateEvent(&sa, FALSE, FALSE, "Global\\eXHOTASTimer");
+	HANDLE hHora = CreateEvent(&sa, TRUE, FALSE, "Global\\eXHOTASHora");
+	HANDLE hFecha = CreateEvent(&sa, TRUE, FALSE, "Global\\eXHOTASFecha");
+	HANDLE hConfig = CreateEvent(&sa, FALSE, FALSE, "Global\\eXHOTASCargar");
+
+    if (pEveryoneSID) FreeSid(pEveryoneSID);
+    if (pSIDAdmin) FreeSid(pSIDAdmin);
+    if (pACL) LocalFree(pACL);
+    if (pSD) LocalFree(pSD);
+
+	while(!salir)
+	{
+		if( WaitForSingleObject(hTimer,2000) == WAIT_TIMEOUT )
+		{
+			serv->Tick();
+		}
+		else
+		{
+			if( WaitForSingleObject(hSalir, 1) == WAIT_OBJECT_0 ) salir = true;
+			if( WaitForSingleObject(hHora, 1) == WAIT_OBJECT_0 ) serv->horaActiva =	true; else serv->horaActiva = false;
+			if( WaitForSingleObject(hFecha, 1) == WAIT_OBJECT_0 ) serv->fechaActiva = true; else serv->fechaActiva = false;
+			if( WaitForSingleObject(hConfig, 1) == WAIT_OBJECT_0 ) serv->CargarConfiguracion();
+		}
+	}
+
+	CloseHandle(hSalir);
+	CloseHandle(hTimer);
+	CloseHandle(hHora);
+	CloseHandle(hFecha);
+	CloseHandle(hConfig);
 }
 
 
@@ -142,11 +179,14 @@ DWORD WINAPI ServicioCtrlHandler(
   LPVOID lpContext     // user-defined context data
 )
 {
-	bool salir=false;
+	bool salir = false;
+	HANDLE h = NULL;
     switch(dwControl) 
     { 
         case SERVICE_CONTROL_STOP:
-			BroadcastSystemMessage(BSF_POSTMESSAGE,0,RegisterWindowMessage("x52servicemsg"),0,0);
+			SetEvent(hSalir);
+			h = OpenEvent(EVENT_MODIFY_STATE, FALSE, "Global\\eXHOTASTimer");
+			if(h!=NULL) { SetEvent(h); CloseHandle(h); }
 			salir=true;
             svEstado.dwWin32ExitCode = 0; 
             svEstado.dwCurrentState  = SERVICE_STOPPED; 
@@ -170,7 +210,6 @@ DWORD WINAPI ServicioCtrlHandler(
     // Send current status. 
     if (!SetServiceStatus (svHandle,  &svEstado)) 
     {
-		MessageBox(NULL,"Handler SetServiceStatus error","[X52-Service]",MB_SERVICE_NOTIFICATION|MB_ICONWARNING);
 		return 6;
 	} else {
 		if(salir && serv!=NULL) {

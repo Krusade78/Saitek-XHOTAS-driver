@@ -88,8 +88,8 @@ HF_AddDevice(
 	devExt->id=(ULONG)'XHDv';
 	devExt->self=PDO;
     devExt->TopOfStack = IoAttachDeviceToDeviceStack(device, PDO);
-	devExt->udo = NULL;
-	devExt->ufo = NULL;
+	//devExt->udo = NULL;
+	//devExt->ufo = NULL;
 	devExt->finUSB=FALSE;
 
     if (devExt->TopOfStack == NULL) {
@@ -408,10 +408,10 @@ Return Value:
 		KeWaitForSingleObject(&devExt->mutexUSB,Executive,KernelMode,FALSE,NULL);
 			devExt->finUSB=TRUE;
 			//=========================== Filtro USB =========================================
-			if(devExt->ufo != NULL) {
-				ObDereferenceObject(devExt->ufo);
-				devExt->ufo=NULL;
-			}
+			//if(devExt->ufo != NULL) {
+			//	ObDereferenceObject(devExt->ufo);
+			//	devExt->ufo=NULL;
+			//}
 			//================================================================================
 		KeSetEvent(&devExt->mutexUSB,0,FALSE);
 

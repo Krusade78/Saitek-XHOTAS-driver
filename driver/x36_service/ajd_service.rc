@@ -10,8 +10,8 @@ Copyright (c) 2007  Alfredo Costalago
 #include <ntverp.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 5,0,0,0
- PRODUCTVERSION 6,0,0,0
+ FILEVERSION 5,0,1,0
+ PRODUCTVERSION 6,0,0,2
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0x8L
  FILEOS 0x40000L
@@ -23,12 +23,12 @@ BEGIN
         BLOCK "040004b0"
         BEGIN
             VALUE "FileDescription", "X36 Init service"
-            VALUE "FileVersion", "5, 0, 0, 0"
+            VALUE "FileVersion", "5, 0, 1, 0"
             VALUE "InternalName", "x36_svc"
             VALUE "LegalCopyright", "© Alfredo Costalago. All rights reserved"
             VALUE "OriginalFilename", "x36_svc.exe"
             VALUE "ProductName", "XHOTAS Driver"
-            VALUE "ProductVersion", "6, 0, 0, 0"
+            VALUE "ProductVersion", "6, 0, 0, 2"
         END
     END
     BLOCK "VarFileInfo"

@@ -29,7 +29,7 @@ Public Class X52Mfd
         Dim hora As Int32
         Dim buff(2) As Byte
         Try
-            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado", False)
+            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\XHOTAS\Calibrado", False)
             If reg IsNot Nothing Then
                 luzMFD = reg.GetValue("LuzMFD", New Byte(0) {1})(0)
                 luz = reg.GetValue("Luz", New Byte(0) {1})(0)
@@ -83,8 +83,8 @@ Public Class X52Mfd
         Dim b(0) As Byte
         Dim hora As Int16
         Try
-            Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado")
-            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado", True)
+            Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SOFTWARE\XHOTAS\Calibrado")
+            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\XHOTAS\Calibrado", True)
             If reg IsNot Nothing Then
                 b(0) = luzMFD
                 reg.SetValue("LuzMFD", b, Microsoft.Win32.RegistryValueKind.Binary)

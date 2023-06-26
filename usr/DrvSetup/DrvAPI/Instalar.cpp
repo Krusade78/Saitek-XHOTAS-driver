@@ -279,12 +279,12 @@ bool CInstalar::JoystickUSB()
 	const char hardwareId5[]="USB\\VID_06A3&PID_2541\0";
 	const char hardwareId6[]="USB\\Vid_06a3&Pid_0255\0";
 	BOOL boot;
-	if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId1,"xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
-		if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId2,"xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
-			if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId3,"xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
-				if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId4,"xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
-					if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId5,"xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
-						if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId6,"xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
+	if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId1,".\\xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
+		if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId2,".\\xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
+			if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId3,".\\xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
+				if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId4,".\\xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
+					if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId5,".\\xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
+						if(!UpdateDriverForPlugAndPlayDevices(NULL,hardwareId6,".\\xhotas.inf",INSTALLFLAG_FORCE,&boot)) {
 							Error("JoystickUSB[0]");
 							return false;
 						}

@@ -317,8 +317,8 @@ Public Class HIDCal
         Runtime.InteropServices.Marshal.Copy(gch.AddrOfPinnedObject, buff, 0, 11)
         gch.Free()
         Try
-            Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado")
-            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado", True)
+            Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SOFTWARE\XHOTAS\Calibrado")
+            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\XHOTAS\Calibrado", True)
             reg.SetValue("Eje" & (eje + 1), buff, Microsoft.Win32.RegistryValueKind.Binary)
             reg.Close()
         Catch ex As Exception
@@ -342,7 +342,7 @@ Public Class HIDCal
         Dim reg As Microsoft.Win32.RegistryKey = Nothing
         Dim buff(11) As Byte
         Try
-            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado", False)
+            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\XHOTAS\Calibrado", False)
             If reg IsNot Nothing Then
                 buff = reg.GetValue("Eje" & (eje + 1))
                 reg.Close()

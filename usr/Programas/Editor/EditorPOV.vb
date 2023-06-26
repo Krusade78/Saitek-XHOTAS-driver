@@ -48,7 +48,7 @@ Public Class EditorPOV
                 padre.ComboBoxMacro.Items.Add("<DX " & Traduce.Txt(st(i)) & ">")
                 Dim macro As New ArrayList
                 Dim comando As UInt16
-                comando = 19 + (((pov * 8) + i) << 8)
+                comando = 19 + ((((NumericUpDown1.Value - 1) * 8) + i) << 8)
                 macro.Add(comando)
                 'texto x52
                 comando = 24 + (3 << 8)
@@ -64,7 +64,7 @@ Public Class EditorPOV
                 'resto
                 comando = 11
                 macro.Add(comando)
-                comando = 51 + (((pov * 8) + i) << 8)
+                comando = 51 + ((((NumericUpDown1.Value - 1) * 8) + i) << 8)
                 macro.Add(comando)
                 padre.datos.AñadirIndice(idx - 1, macro)
             End If

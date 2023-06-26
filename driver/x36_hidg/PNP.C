@@ -190,9 +190,7 @@ NTSTATUS HGM_PnP
                         Executive, KernelMode, FALSE, NULL );
                 }
 
-                ntStatus = STATUS_SUCCESS;
-
-                return ntStatus;
+                break;
 
             default:
 

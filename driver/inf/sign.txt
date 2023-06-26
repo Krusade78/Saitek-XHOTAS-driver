@@ -1,0 +1,3 @@
+makecert -r -pe -ss PrivateCertStore -n "CN=XHOTAS Driver(test)" xcert.cer
+inf2cat
+signtool sign /v /s PrivateCertStore /n "XHOTAS Driver(test)" /t http://timestamp.verisign.com/scripts/timestamp.dll xh_hid.cat

@@ -145,7 +145,7 @@ void LeerRegistroGameport(CALIBRADOX36* datosEje)
 	DWORD tipo,tam=sizeof(CALIBRADOX36);
 	LONG res;
 
-	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado",0,KEY_READ,&key))
+	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\XHOTAS\\Calibrado",0,KEY_READ,&key))
 		return;
 
 	res=RegQueryValueEx(key,"GameportEje1",0,&tipo,(BYTE*)&datosEje[0],&tam);
@@ -261,7 +261,7 @@ void LeerRegistroHID(CALIBRADOHID* datosEje)
 	DWORD tipo,tam=sizeof(CALIBRADOHID);
 	LONG res;
 
-	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado",0,KEY_READ,&key))
+	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\XHOTAS\\Calibrado",0,KEY_READ,&key))
 		return;
 
 	res=RegQueryValueEx(key,"Eje1",0,&tipo,(BYTE*)&datosEje[0],&tam);
@@ -310,10 +310,15 @@ __declspec(dllexport) char EscribirCalibradoHID()
 
 __declspec(dllexport) void EnviarConfiguracionX52()
 {
-	BroadcastSystemMessage(
-		BSF_IGNORECURRENTTASK|BSF_POSTMESSAGE,
-		NULL,
-		RegisterWindowMessage("x52servicemsg"),
-		3,
-		0);
+	MessageBox(0,0,0,0);
+	HANDLE h = OpenEvent(EVENT_MODIFY_STATE, FALSE, "Global\\eXHOTASCargar");
+	if(h != NULL) {
+		SetEvent(h);
+		CloseHandle(h);
+	}
+	h = OpenEvent(EVENT_MODIFY_STATE, FALSE, "Global\\eXHOTASTimer");
+	if(h != NULL) {
+		SetEvent(h);
+		CloseHandle(h);
+	}
 }

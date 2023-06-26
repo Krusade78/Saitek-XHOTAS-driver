@@ -335,8 +335,8 @@ Public Class X36Cal
         Runtime.InteropServices.Marshal.Copy(gch.AddrOfPinnedObject, buff, 0, 17)
         gch.Free()
         Try
-            Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado")
-            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado", True)
+            Microsoft.Win32.Registry.LocalMachine.CreateSubKey("SOFTWARE\XHOTAS\Calibrado")
+            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\XHOTAS\Calibrado", True)
             reg.SetValue("GameportEje" & (eje + 1), buff, Microsoft.Win32.RegistryValueKind.Binary)
             reg.Close()
         Catch ex As Exception
@@ -358,7 +358,7 @@ Public Class X36Cal
         Dim reg As Microsoft.Win32.RegistryKey = Nothing
         Dim buff(20) As Byte
         Try
-            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SYSTEM\CurrentControlSet\Control\MediaProperties\PrivateProperties\Joystick\Calibrado", False)
+            reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\XHOTAS\Calibrado", False)
             If reg IsNot Nothing Then
                 buff = reg.GetValue("GameportEje" & (eje + 1))
                 reg.Close()

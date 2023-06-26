@@ -175,8 +175,25 @@ __declspec(dllexport) char CargarMapa(wchar_t* archivo)
 	CloseHandle(driver);
 	delete[] buffer; buffer=NULL;
 
-	BroadcastSystemMessage(BSF_POSTMESSAGE,0,RegisterWindowMessage(L"x52servicemsg"),1,horaAct);
-	BroadcastSystemMessage(BSF_POSTMESSAGE,0,RegisterWindowMessage(L"x52servicemsg"),2,fechaAct);
+	HANDLE h = NULL;
+	h = OpenEvent(EVENT_MODIFY_STATE, FALSE, L"Global\\eXHOTASHora");
+	if(h != NULL)
+	{
+		if(horaAct) SetEvent(h); else ResetEvent(h);
+		CloseHandle(h);
+	}
+	h = OpenEvent(EVENT_MODIFY_STATE, FALSE, L"Global\\eXHOTASFecha");
+	if(h != NULL)
+	{
+		if(fechaAct) SetEvent(h); else ResetEvent(h);
+		CloseHandle(h);
+	}
+	h = OpenEvent(EVENT_MODIFY_STATE, FALSE, L"Global\\eXHOTASTimer");
+	if(h != NULL)
+	{
+		SetEvent(h);
+		CloseHandle(h);
+	}
 	driver=CreateFile(
 			L"\\\\.\\XUSBInterface",
 			GENERIC_WRITE,

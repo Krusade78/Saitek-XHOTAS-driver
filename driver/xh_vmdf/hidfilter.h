@@ -40,8 +40,8 @@ typedef struct _DEVICE_EXTENSION
 
 	// llamadas al usb
 	KEVENT mutexUSB;
-	PDEVICE_OBJECT udo;
-    PFILE_OBJECT ufo;
+	//PDEVICE_OBJECT udo;
+ //   PFILE_OBJECT ufo;
 	BOOLEAN finUSB;
 
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;

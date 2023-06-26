@@ -41,7 +41,7 @@ void CServicio::CargarConfiguracion()
 	DWORD tipo,tam;
 	LONG res;
 
-	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado",0,KEY_READ,&key))
+	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\XHOTAS\\Calibrado",0,KEY_READ,&key))
 		return ;
 
 	tam=1; res=RegQueryValueEx(key,"LuzMFD",0,&tipo,(BYTE*)&this->luzMFD,&tam);
@@ -149,16 +149,12 @@ void CServicio::SetTextoInicio() {
 
 	char texto[18];
 	const char linea1[]="   Saitek X52";
-	const char linea2[]="XHOTAS ver. 6.0";
-	const char linea3[]="      RC 1";
+	const char linea2[]="XHOTAS ver. 6.0.2";
 	texto[0]=1;
 	RtlCopyMemory(&texto[1],linea1,sizeof(linea1));
 	DeviceIoControl(driver,IOCTL_TEXTO,texto,strlen(texto),NULL,0,&ret,NULL);
 	texto[0]=2;
 	RtlCopyMemory(&texto[1],linea2,sizeof(linea2));
-	DeviceIoControl(driver,IOCTL_TEXTO,texto,strlen(texto),NULL,0,&ret,NULL);
-	texto[0]=3;
-	RtlCopyMemory(&texto[1],linea3,sizeof(linea3));
 	DeviceIoControl(driver,IOCTL_TEXTO,texto,strlen(texto),NULL,0,&ret,NULL);
 
 	CloseHandle(driver);
@@ -271,7 +267,7 @@ void CServicio::LeerRegistro(CALIBRADO* datosEje)
 	DWORD tipo,tam=sizeof(CALIBRADO);
 	LONG res;
 
-	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado",0,KEY_READ,&key))
+	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\XHOTAS\\Calibrado",0,KEY_READ,&key))
 		return ;
 
 	res=RegQueryValueEx(key,"Eje1",0,&tipo,(BYTE*)&datosEje[0],&tam);

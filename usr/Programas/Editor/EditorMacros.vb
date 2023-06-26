@@ -4,6 +4,7 @@ Public Class EditorMacros
     Private reps As Integer = 0
     Public Shared ultimaPlantilla As Integer = 0
     Private macro As New ArrayList
+    Private Declare Auto Function WideCharToMultiByte Lib "kernel32.dll" (ByVal codepage As UInteger, ByVal flags As UInt32, ByVal wstr As String, ByVal wstr_tam As Integer, ByVal mb_str() As Byte, ByVal mbstr_tam As Integer, ByRef defchar As Byte, ByRef bdefchar As Byte) As Integer
 
     Public Sub New(ByVal i As Integer, ByVal p As Principal)
         InitializeComponent()
@@ -42,8 +43,10 @@ Public Class EditorMacros
             If idc > -1 Then
                 Dim st As String = TextBoxNombre.Text.Trim()
                 If st.Length > 16 Then st = st.Substring(0, 16)
+                Dim stb(16) As Byte
+                WideCharToMultiByte(20127, 0, st, st.Length, stb, 17, 0, 0)
                 For i As Integer = idc + 1 To macro.Count - 2
-                    comando = 24 + (CInt(System.Text.Encoding.GetEncoding(20127).GetBytes(st)(i - idc - 1)) << 8)
+                    comando = 24 + (CInt(stb(i - idc - 1)) << 8)
                     If comando <> macro(i) Then
                         nombreOk = False
                         Exit For
@@ -449,28 +452,44 @@ Public Class EditorMacros
             If idx = -1 Then 'no existe
                 If CheckBox1.Checked Then 'texto x52
                     Dim st As String = Me.TextBoxNombre.Text.Trim()
+                    Dim stb(32) As Byte
+                    WideCharToMultiByte(20127, 0, st, st.Length, stb, 33, 0, 0)
                     macro.Add(24 + (3 << 8))
-                    For j As Byte = 0 To st.Length - 1
-                        macro.Add(24 + (CInt(System.Text.ASCIIEncoding.ASCII.GetBytes(st)(j)) << 8))
-                    Next
+                    If st.Length > 16 Then
+                        For j As Byte = 0 To 15
+                            macro.Add(24 + (CInt(stb(j)) << 8))
+                        Next
+                    Else
+                        For j As Byte = 0 To st.Length - 1
+                            macro.Add(24 + (CInt(stb(j)) << 8))
+                        Next
+                    End If
                     macro.Add(56)
                 End If
-                idx = padre.ComboBoxAssigned.Items.Add(Me.TextBoxNombre.Text.Trim())
-                padre.ComboBoxMacro.Items.Add(Me.TextBoxNombre.Text.Trim())
-                padre.datos.AñadirIndice(idx - 1, macro)
-                Me.Tag = idx - 1
-                Me.DialogResult = Windows.Forms.DialogResult.Ignore
-            Else
-                Traduce.Msg("name_repeated", "warning", MsgBoxStyle.Exclamation)
-                Exit Sub
-            End If
+                    idx = padre.ComboBoxAssigned.Items.Add(Me.TextBoxNombre.Text.Trim())
+                    padre.ComboBoxMacro.Items.Add(Me.TextBoxNombre.Text.Trim())
+                    padre.datos.AñadirIndice(idx - 1, macro)
+                    Me.Tag = idx - 1
+                    Me.DialogResult = Windows.Forms.DialogResult.Ignore
+                Else
+                    Traduce.Msg("name_repeated", "warning", MsgBoxStyle.Exclamation)
+                    Exit Sub
+                End If
         Else
             If CheckBox1.Checked Then 'texto x52
                 Dim st As String = Me.TextBoxNombre.Text.Trim()
+                Dim stb(32) As Byte
+                WideCharToMultiByte(20127, 0, st, st.Length, stb, 33, 0, 0)
                 macro.Add(24 + (3 << 8))
-                For j As Byte = 0 To st.Length - 1
-                    macro.Add(24 + (CInt(System.Text.ASCIIEncoding.ASCII.GetBytes(st)(j)) << 8))
-                Next
+                If st.Length > 16 Then
+                    For j As Byte = 0 To 15
+                        macro.Add(24 + (CInt(stb(j)) << 8))
+                    Next
+                Else
+                    For j As Byte = 0 To st.Length - 1
+                        macro.Add(24 + (CInt(stb(j)) << 8))
+                    Next
+                End If
                 macro.Add(56)
             End If
             Dim idx As Integer = padre.ComboBoxAssigned.Items.Add(Me.TextBoxNombre.Text.Trim())
@@ -1704,12 +1723,12 @@ Public Class EditorMacros
     End Sub
     Private Sub ButtonPovOn_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ButtonPovOn.Click
         If macro.Count > 237 Then Exit Sub
-        macro.Insert(GetIndice(), 19 + (((NumericUpDownPov.Value - 1) * 8) + (NumericUpDownPosicion.Value - 1)))
+        macro.Insert(GetIndice(), 19 + ((((NumericUpDownPov.Value - 1) * 8) + (NumericUpDownPosicion.Value - 1)) << 8))
         Cargar()
     End Sub
     Private Sub ButtonPovOff_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ButtonPovOff.Click
         If macro.Count > 237 Then Exit Sub
-        macro.Insert(GetIndice(), 51 + (((NumericUpDownPov.Value - 1) * 8) + (NumericUpDownPosicion.Value - 1)))
+        macro.Insert(GetIndice(), 51 + ((((NumericUpDownPov.Value - 1) * 8) + (NumericUpDownPosicion.Value - 1)) << 8))
         Cargar()
     End Sub
 #End Region
@@ -1720,10 +1739,11 @@ Public Class EditorMacros
 
         Dim idc As Integer = GetIndice()
         macro.Insert(idc, 24 + (NumericUpDown9.Value << 8))
-        Dim ascii(15) As Byte
+        Dim stb(16) As Byte
+        WideCharToMultiByte(20127, 0, TextBox3.Text, TextBox3.Text.Length, stb, 17, 0, 0)
         Dim i As Byte
         For i = 0 To TextBox3.Text.Length - 1
-            macro.Insert(idc + i + 1, 24 + (CInt(System.Text.ASCIIEncoding.ASCII.GetBytes(TextBox3.Text)(i)) << 8))
+            macro.Insert(idc + i + 1, 24 + (CInt(stb(i)) << 8))
         Next
         macro.Insert(idc + i + 1, 56)
         Cargar()

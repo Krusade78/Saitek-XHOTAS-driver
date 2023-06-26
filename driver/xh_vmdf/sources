@@ -2,10 +2,9 @@ TARGETNAME=xh_vmdf
 TARGETTYPE=DRIVER
 DRIVERTYPE=WDM
 TARGETPATH=obj
-C_DEFINES = $(C_DEFINES) /DLITE
+C_DEFINES = $(C_DEFINES) /DPRO
 
-SOURCES=hidfilter.c     \
-        hidfilter.rc	\
+SOURCES=        hidfilter.rc	\
 		ioctl.c		\
 		directx.c	\
 		botones.c	\
@@ -13,4 +12,5 @@ SOURCES=hidfilter.c     \
 		acciones.c	\
 		cola.c		\
 		control.c	\
-		mapa.c		
+		mapa.c		\
+		hidfilter.c

@@ -81,7 +81,7 @@ void CServicio::LeerRegistroX36(CALIBRADOX36* datosEje)
 	DWORD tipo,tam=sizeof(CALIBRADOX36);
 	LONG res;
 
-	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado",0,KEY_READ,&key))
+	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\XHOTAS\\Calibrado",0,KEY_READ,&key))
 		return ;
 
 	res=RegQueryValueEx(key,"GameportEje1",0,&tipo,(BYTE*)&datosEje[0],&tam);
@@ -128,7 +128,7 @@ void CServicio::LeerRegistroHID(CALIBRADOHID* datosEje)
 	DWORD tipo,tam=sizeof(CALIBRADOHID);
 	LONG res;
 
-	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\Calibrado",0,KEY_READ,&key))
+	if(ERROR_SUCCESS!=RegOpenKeyEx(HKEY_LOCAL_MACHINE,"SOFTWARE\\XHOTAS\\Calibrado",0,KEY_READ,&key))
 		return ;
 
 	res=RegQueryValueEx(key,"Eje1",0,&tipo,(BYTE*)&datosEje[0],&tam);

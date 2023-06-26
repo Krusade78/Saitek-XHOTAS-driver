@@ -4,10 +4,10 @@ Class=HIDClass
 ClassGuid={745a17a0-74d3-11d0-b6fe-00a0c90f57da}
 Provider="Alfredo Costalago"
 LayoutFile=layout.inf
-DriverVer=6/15/2008,6.0.0.0
+DriverVer=04/11/2009,6.0.0.1
 
 [SourceDisksFiles]
-xhotas.inf = 1
+;xhotas.inf = 1
 xh_vmd.sys = 1
 xh_vmdf.sys = 1
 xh_cpl.dll = 1
@@ -52,7 +52,7 @@ Hid.dll
 xh_cpl.dll
 
 [inf.CopyFiles]
-xhotas.inf
+;xhotas.inf
 
 [vhidMini.Inst.NT.HW]
 AddReg = vhidMini_Parameters.AddReg 
