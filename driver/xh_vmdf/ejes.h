@@ -23,6 +23,7 @@ VOID Calibrado(
 VOID SensibilidadYMapeado(
 	PITFDEVICE_EXTENSION devExt,
 	BOOLEAN esX52,
+	PHID_INPUT_DATA viejo,
 	PHID_INPUT_DATA entrada,
 	PHID_INPUT_DATA salida
 	);
@@ -45,6 +46,13 @@ typedef	struct _CALIBRADO {
 	BOOLEAN cal;
 	BOOLEAN antiv;
 } CALIBRADO, *PCALIBRADO;
+
+VOID AccionRaton
+(
+	PITFDEVICE_EXTENSION idevExt,
+	UCHAR eje,
+	CHAR mov
+	);
 
 UCHAR TraducirGiratorio(
 	PITFDEVICE_EXTENSION idevExt,

@@ -134,22 +134,22 @@ volver:
 			break;
 		case 4: //Eje -x
 			KeAcquireSpinLock(&devExt->slRaton,&irql);
-				if(!soltar)	devExt->stRaton[1]|=-evento.dato; else devExt->stRaton[1]=0; 
+				if(!soltar)	devExt->stRaton[1]=-evento.dato; else devExt->stRaton[1]=0; 
 			KeReleaseSpinLock(&devExt->slRaton,irql);
 			break;
 		case 5: //Eje x
 			KeAcquireSpinLock(&devExt->slRaton,&irql);
-				if(!soltar)	devExt->stRaton[1]|=evento.dato; else devExt->stRaton[1]=0; 
+				if(!soltar)	devExt->stRaton[1]=evento.dato; else devExt->stRaton[1]=0; 
 			KeReleaseSpinLock(&devExt->slRaton,irql);
 			break;
 		case 6: //Eje -y
 			KeAcquireSpinLock(&devExt->slRaton,&irql);
-				if(!soltar)	devExt->stRaton[2]|=-evento.dato; else devExt->stRaton[2]=0; 
+				if(!soltar)	devExt->stRaton[2]=-evento.dato; else devExt->stRaton[2]=0; 
 			KeReleaseSpinLock(&devExt->slRaton,irql);
 			break;
 		case 7: //Eje y
 			KeAcquireSpinLock(&devExt->slRaton,&irql);
-				if(!soltar)	devExt->stRaton[2]|=evento.dato; else devExt->stRaton[2]=0; 
+				if(!soltar)	devExt->stRaton[2]=evento.dato; else devExt->stRaton[2]=0; 
 			KeReleaseSpinLock(&devExt->slRaton,irql);
 			break;
 		case 8: // Wheel up
@@ -657,6 +657,8 @@ VOID ProcesarAccion(PDEVICE_EXTENSION devExt,BOOLEAN raton)
 		if(ColaEstaVacia(&devExt->ListaAcciones)) {
 			KeClearEvent(&devExt->evAccion);
 		}
+	} else {
+		KeClearEvent(&devExt->evAccion);
 	}
 }
 
@@ -694,6 +696,7 @@ DpcRoutineDelay(
 			KeReleaseSpinLockFromDpcLevel(&devExt->slListaAcciones);
 			ColaBorrar(eventos);
 		} else {
+			KeSetEvent(&devExt->evAccion,0,FALSE);
 			KeReleaseSpinLockFromDpcLevel(&devExt->slListaAcciones);
 		}
 	}

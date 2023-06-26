@@ -24,15 +24,11 @@ HF_InternIoCtl (
 	{
 		status = ReadReport(DeviceObject,Irp);
 	} else {
+		status = STATUS_NOT_SUPPORTED;
 	    Irp->IoStatus.Information = 0;
 		Irp->IoStatus.Status = status;
-		status = STATUS_NOT_SUPPORTED;
-	}
-
-	if(status != STATUS_PENDING)
-    {
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
-    }
+	}
 
 	return status;
 }
@@ -60,116 +56,187 @@ Return Value:
 
 --*/
 {
-    NTSTATUS ntStatus = STATUS_PENDING;
+    NTSTATUS ntStatus = STATUS_SUCCESS;//STATUS_PENDING;
     PIO_STACK_LOCATION  IrpStack;
     PDEVICE_EXTENSION devExt;
-    PREAD_CONTEXT    ctx;
+	PREAD_WORKITEM rwi;
+	KIRQL irql;
 
     devExt = (PDEVICE_EXTENSION) DeviceObject->DeviceExtension;
 	IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
-    ctx = ExAllocatePoolWithTag(NonPagedPool, 
-                                sizeof(READ_CONTEXT), 
-                                (ULONG)'npHV'
+    rwi = ExAllocatePoolWithTag(NonPagedPool, 
+                                sizeof(READ_WORKITEM), 
+                                (ULONG)'wpHV'
                                 );
 
-    if(!ctx) {
+    if(rwi==NULL) {
         Irp->IoStatus.Status = ntStatus = STATUS_INSUFFICIENT_RESOURCES;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
     } else {
-		KIRQL irql;
+		rwi->WorkItem = IoAllocateWorkItem(devExt->self);
+		KeAcquireSpinLock(&devExt->slIrpLectura,&irql);
+		if((devExt->IrpLectura==NULL) && (rwi->WorkItem!=NULL) ) {
+			devExt->IrpLectura = Irp;
+			IoMarkIrpPending(Irp);
+			KeReleaseSpinLock(&devExt->slIrpLectura, irql);
 
-        RtlZeroMemory(ctx, sizeof(READ_CONTEXT));
+			rwi->DeviceExtension = devExt;
+			IoQueueWorkItem(rwi->WorkItem,WIReadReport,DelayedWorkQueue,rwi);
 
-		IoMarkIrpPending(Irp);
+			ntStatus = STATUS_PENDING;
+		} else {
+			ExFreePool(rwi);
+			KeReleaseSpinLock(&devExt->slIrpLectura, irql);
 
-        ctx->Irp = Irp;
-		ctx->DeviceObject=DeviceObject;
-		KeInitializeDpc(&ctx->ReadTimerDpc,
-				            DpcRoutineLectura,
-					        (PVOID)ctx
-						    );
-
-		if(KeGetCurrentIrql()<=APC_LEVEL)
-		{
-			LARGE_INTEGER timeout=RtlConvertLongToLargeInteger(-10*1000*500);
-			KeWaitForSingleObject(&devExt->evAccion,
-								Executive,
-								KernelMode,
-								FALSE,
-								&timeout
-								);
-		}		
-
-        KeInitializeTimer(&ctx->ReadTimer);
-
-		KeAcquireSpinLock(&devExt->slDPCsActivos,&irql);
-			devExt->DPCsActivos++;
-		KeReleaseSpinLock(&devExt->slDPCsActivos,irql);
-        KeSetTimer(&ctx->ReadTimer,
-                   RtlConvertLongToLargeInteger(-10*1000),
-                   &ctx->ReadTimerDpc
-                   );
+			Irp->IoStatus.Status = ntStatus = STATUS_CANCELLED;
+			Irp->IoStatus.Information = 0;
+			IoCompleteRequest(Irp,IO_NO_INCREMENT);
+		}
 	}
 
     return ntStatus;
 }
 
-VOID 
-DpcRoutineLectura(   
-    IN PKDPC Dpc,
-    IN PVOID DeferredContext,
-    IN PVOID SystemArgument1,
-    IN PVOID SystemArgument2
-    )
+VOID WIReadReport(IN PDEVICE_OBJECT DevObj,IN PVOID Context)
 {
-	NTSTATUS status=STATUS_SUCCESS;
-    PIO_STACK_LOCATION	IrpStack;
-	PDEVICE_EXTENSION   devExt;
-    PIRP                Irp;
-	PREAD_CONTEXT       rctx;
-	LARGE_INTEGER		tiempo;
+	PIO_WORKITEM wi = ((PREAD_WORKITEM)Context)->WorkItem;
+	PDEVICE_EXTENSION devExt = ((PREAD_WORKITEM)Context)->DeviceExtension;
+	HANDLE hHilo = NULL;
+	OBJECT_ATTRIBUTES oa;
+	PREAD_CONTEXT ctx = NULL;
 
-	rctx=(PREAD_CONTEXT)DeferredContext;
-	Irp = rctx->Irp;
-	devExt = (PDEVICE_EXTENSION) rctx->DeviceObject->DeviceExtension;
-	ExFreePoolWithTag(DeferredContext,(ULONG)'npHV');
+	ExFreePool(Context);
 
-	IrpStack = IoGetCurrentIrpStackLocation(Irp);
+	PAGED_CODE();
 
-	if(((devExt->TickRatonTimer++)>=devExt->TickRaton) || IrpStack->Parameters.DeviceIoControl.OutputBufferLength==5) {
-		if(IrpStack->Parameters.DeviceIoControl.OutputBufferLength<(sizeof(devExt->stRaton)+1))
-		{
-		    status=STATUS_BUFFER_TOO_SMALL;
+	ctx = ExAllocatePoolWithTag(PagedPool, sizeof(READ_CONTEXT),'npHV');
+	if(ctx!=NULL) {
+		KeInitializeEvent(&ctx->Ev, NotificationEvent, FALSE);
+		ctx->DeviceExtension = devExt;
+		InitializeObjectAttributes(&oa, NULL, OBJ_KERNEL_HANDLE, NULL, NULL);
+
+		if(PsCreateSystemThread(&hHilo,THREAD_ALL_ACCESS,&oa,NULL,NULL,DpcRoutineLectura,ctx)==STATUS_SUCCESS) {
+			ObReferenceObjectByHandle(hHilo,THREAD_ALL_ACCESS,NULL,KernelMode,&ctx->Hilo,NULL);
+			KeSetEvent(&ctx->Ev,0,FALSE);
+			ZwClose(hHilo);
 		} else {
-			devExt->TickRatonTimer=0;
-			*((PUCHAR)Irp->UserBuffer)=2;	// Report ID
-			KeAcquireSpinLockAtDpcLevel(&devExt->slListaAcciones);
-				ProcesarAccionRaton(devExt);
-				KeAcquireSpinLockAtDpcLevel(&devExt->slRaton);
-					RtlCopyMemory((PUCHAR)Irp->UserBuffer+1,devExt->stRaton, sizeof(devExt->stRaton));
-				KeReleaseSpinLockFromDpcLevel(&devExt->slRaton);
-			KeReleaseSpinLockFromDpcLevel(&devExt->slListaAcciones);
-			Irp->IoStatus.Information = sizeof(devExt->stRaton)+1;
+			KIRQL irql;
+			PIRP Irp;
+			KeAcquireSpinLock(&devExt->slIrpLectura,&irql);
+				Irp = devExt->IrpLectura;
+				devExt->IrpLectura = NULL;
+			KeReleaseSpinLock(&devExt->slIrpLectura, irql);
+			Irp->IoStatus.Status = STATUS_CANCELLED;
+			Irp->IoStatus.Information = 0;
+			IoCompleteRequest(Irp,IO_NO_INCREMENT);
+			ExFreePool(ctx);
 		}
 	} else {
-		if(IrpStack->Parameters.DeviceIoControl.OutputBufferLength<(sizeof(devExt->stTeclado)+1))
-		{
-		    status=STATUS_BUFFER_TOO_SMALL;
-		} else {
-			*((PUCHAR)Irp->UserBuffer)=1;	// Report ID
-			KeAcquireSpinLockAtDpcLevel(&devExt->slListaAcciones);
-				ProcesarAccionTeclado(devExt);
-				RtlCopyMemory((PUCHAR)Irp->UserBuffer+1,devExt->stTeclado, sizeof(devExt->stTeclado));
-			KeReleaseSpinLockFromDpcLevel(&devExt->slListaAcciones);
-			Irp->IoStatus.Information =  sizeof(devExt->stTeclado)+1;
-		}
+		KIRQL irql;
+		PIRP Irp;
+		KeAcquireSpinLock(&devExt->slIrpLectura,&irql);
+			Irp = devExt->IrpLectura;
+			devExt->IrpLectura = NULL;
+		KeReleaseSpinLock(&devExt->slIrpLectura, irql);
+		Irp->IoStatus.Status = STATUS_CANCELLED;
+		Irp->IoStatus.Information = 0;
+		IoCompleteRequest(Irp,IO_NO_INCREMENT);
 	}
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+	IoFreeWorkItem(wi);
+}
 
-	KeAcquireSpinLockAtDpcLevel(&devExt->slDPCsActivos);
-		devExt->DPCsActivos--;
-	KeReleaseSpinLockFromDpcLevel(&devExt->slDPCsActivos);
+
+VOID DpcRoutineLectura(IN PVOID Context)
+{
+	NTSTATUS			ntStatus = STATUS_SUCCESS;
+    PDEVICE_EXTENSION	devExt = ((PREAD_CONTEXT)Context)->DeviceExtension;
+    PIO_STACK_LOCATION	IrpStack;
+    PIRP                Irp;
+	PETHREAD			pHilo;
+	LARGE_INTEGER		wait;
+	KIRQL				irql, irqlIRP;
+
+
+	PAGED_CODE();
+
+	KeWaitForSingleObject(&((PREAD_CONTEXT)Context)->Ev,Executive,KernelMode,FALSE,NULL);
+	pHilo = ((PREAD_CONTEXT)Context)->Hilo;
+
+	ExFreePoolWithTag(Context,(ULONG)'npHV');
+	KeSetPriorityThread(KeGetCurrentThread(), 20 );
+
+
+	wait = RtlConvertLongToLargeInteger(-10*1000*devExt->TickRaton);
+	if( KeWaitForSingleObject(&devExt->evAccion, Executive, KernelMode,	FALSE, &wait)==STATUS_TIMEOUT) {
+		KeAcquireSpinLock(&devExt->slIrpLectura,&irqlIRP); //*********** OJO
+		if(devExt->IrpLectura==NULL) goto salir;
+		Irp = devExt->IrpLectura;
+		IrpStack = IoGetCurrentIrpStackLocation(Irp);
+
+		if(IrpStack->Parameters.DeviceIoControl.OutputBufferLength<(sizeof(devExt->stRaton)+1))
+		{
+			Irp->IoStatus.Status = ntStatus =STATUS_BUFFER_TOO_SMALL;
+		} else {
+			*((PUCHAR)Irp->UserBuffer)=2;	// Report ID
+			KeAcquireSpinLock(&devExt->slRaton,&irql);
+				RtlCopyMemory((PUCHAR)Irp->UserBuffer+1,devExt->stRaton, sizeof(devExt->stRaton));
+			KeReleaseSpinLock(&devExt->slRaton,irql);
+			Irp->IoStatus.Information = sizeof(devExt->stRaton)+1;
+			Irp->IoStatus.Status = ntStatus;
+		}
+	} else {
+		KeAcquireSpinLock(&devExt->slIrpLectura,&irqlIRP); //************ OJO
+		if(devExt->IrpLectura==NULL) goto salir;
+		Irp = devExt->IrpLectura;
+		IrpStack = IoGetCurrentIrpStackLocation(Irp);
+
+		if( devExt->TickRatonTimer ) {
+			if(IrpStack->Parameters.DeviceIoControl.OutputBufferLength<(sizeof(devExt->stRaton)+1))
+			{
+				Irp->IoStatus.Status = ntStatus =STATUS_BUFFER_TOO_SMALL;
+			} else {
+				KIRQL irql1,irql2;
+
+				*((PUCHAR)Irp->UserBuffer)=2;	// Report ID
+				KeAcquireSpinLock(&devExt->slListaAcciones,&irql1);
+					ProcesarAccionRaton(devExt);
+					KeAcquireSpinLock(&devExt->slRaton,&irql2);
+						RtlCopyMemory((PUCHAR)Irp->UserBuffer+1,devExt->stRaton, sizeof(devExt->stRaton));
+					KeReleaseSpinLock(&devExt->slRaton,irql2);
+				KeReleaseSpinLock(&devExt->slListaAcciones,irql1);
+				Irp->IoStatus.Information = sizeof(devExt->stRaton)+1;
+				Irp->IoStatus.Status = ntStatus;
+			}
+		} else {
+			if(IrpStack->Parameters.DeviceIoControl.OutputBufferLength<(sizeof(devExt->stTeclado)+1))
+			{
+				ntStatus=STATUS_BUFFER_TOO_SMALL;
+			} else {
+				*((PUCHAR)Irp->UserBuffer)=1;	// Report ID
+				KeAcquireSpinLock(&devExt->slListaAcciones,&irql);
+					ProcesarAccionTeclado(devExt);
+					RtlCopyMemory((PUCHAR)Irp->UserBuffer+1,devExt->stTeclado, sizeof(devExt->stTeclado));
+				KeReleaseSpinLock(&devExt->slListaAcciones,irql);
+				Irp->IoStatus.Information =  sizeof(devExt->stTeclado)+1;
+				Irp->IoStatus.Status = ntStatus;
+			}
+		}
+
+		devExt->TickRatonTimer = !devExt->TickRatonTimer;
+	}
+
+salir:
+	if(	devExt->IrpLectura != NULL) {
+		devExt->IrpLectura = NULL;
+		KeReleaseSpinLock(&devExt->slIrpLectura, irqlIRP);
+	    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+	} else {
+		KeReleaseSpinLock(&devExt->slIrpLectura, irqlIRP);
+	}
+
+
+	ObDereferenceObject(pHilo);
+	PsTerminateSystemThread(0);
 }

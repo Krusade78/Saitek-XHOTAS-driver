@@ -25,18 +25,18 @@ typedef struct _DEVICE_EXTENSION
 	UCHAR	stRaton[4];
 	UCHAR	stTeclado[29];
 	HID_INPUT_DATA stHidData;
-	UINT16	DPCsActivos;
 	KEVENT  evAccion;
 
 	KSPIN_LOCK slGameData;
 	KSPIN_LOCK slRaton;
 
-	KSPIN_LOCK slListaAcciones;
-	COLA ListaAcciones;
+	KSPIN_LOCK	slListaAcciones;
+	COLA		ListaAcciones;
 
-	KSPIN_LOCK slDPCsActivos;
+	KSPIN_LOCK	slIrpLectura;
+	PIRP		IrpLectura;
 	UCHAR TickRaton;
-	UCHAR TickRatonTimer;
+	BOOLEAN TickRatonTimer;
 
 	// llamadas al usb
 	KEVENT mutexUSB;

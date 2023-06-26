@@ -163,8 +163,8 @@ VOID IniciarExtensiones(PDEVICE_EXTENSION devExt)
 	KeInitializeSpinLock(&devExt->slGameData);
 	KeInitializeSpinLock(&devExt->slRaton);
 	KeInitializeSpinLock(&devExt->slListaAcciones);
-	KeInitializeSpinLock(&devExt->slDPCsActivos);
-	devExt->DPCsActivos=0;
+	KeInitializeSpinLock(&devExt->slIrpLectura);
+	devExt->IrpLectura=NULL;
 	devExt->ListaAcciones.principio=NULL;
 	devExt->ListaAcciones.fin=NULL;
 	RtlZeroMemory(devExt->stRaton,sizeof(devExt->stRaton));
@@ -172,7 +172,7 @@ VOID IniciarExtensiones(PDEVICE_EXTENSION devExt)
 	RtlZeroMemory(&devExt->stHidData,sizeof(HID_INPUT_DATA));
 	devExt->TickRaton=70;
 	//LeerTickRaton(&devExt->TickRaton);
-	devExt->TickRatonTimer=0;
+	devExt->TickRatonTimer = FALSE;
 
 	KeInitializeSpinLock(&itfDevExt->slComandos);
 	KeInitializeSpinLock(&itfDevExt->slMapas);
@@ -387,13 +387,15 @@ Return Value:
 			LARGE_INTEGER timeout=RtlConvertLongToLargeInteger(-10*1000*50);
 			KeInitializeEvent(&aux,NotificationEvent,FALSE);
 			while(TRUE) {
-				KeAcquireSpinLock(&devExt->slDPCsActivos,&irql);
-					if(devExt->DPCsActivos==0) {
-						LimpiarMemoria((PVOID)devExt);
-						KeReleaseSpinLock(&devExt->slDPCsActivos,irql);
-						break;
-					}
-				KeReleaseSpinLock(&devExt->slDPCsActivos,irql);
+				KeSetEvent(&devExt->evAccion,0,FALSE);
+				KeAcquireSpinLock(&devExt->slIrpLectura,&irql);
+				if( devExt->IrpLectura==NULL ) { // asegurar que no se ejecutan mas irps
+					LimpiarMemoria((PVOID)devExt);
+					KeReleaseSpinLock(&devExt->slIrpLectura,irql);
+					break;
+				}
+				KeReleaseSpinLock(&devExt->slIrpLectura,irql);
+
 				KeWaitForSingleObject(&aux,
 										Executive,
 										KernelMode,

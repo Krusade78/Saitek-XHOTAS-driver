@@ -2,7 +2,7 @@ TARGETNAME=xh_vmdf
 TARGETTYPE=DRIVER
 DRIVERTYPE=WDM
 TARGETPATH=obj
-C_DEFINES = $(C_DEFINES) /DPRO
+C_DEFINES = $(C_DEFINES) /DLITE
 
 SOURCES=hidfilter.c     \
         hidfilter.rc	\

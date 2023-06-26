@@ -210,7 +210,7 @@ ProcesarWrite(
 
 		// Sensibilidad y mapeado
 		RtlZeroMemory(outputData,sizeof(HID_INPUT_DATA));
-		SensibilidadYMapeado(idevExt,esX52,&hidData,outputData);
+		SensibilidadYMapeado(idevExt,esX52,&viejohidData,&hidData,outputData);
 
 		KeAcquireSpinLock(&devExt->slGameData,&irql);
 			RtlCopyMemory(outputData->Setas,devExt->stHidData.Setas,11);

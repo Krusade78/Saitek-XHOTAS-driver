@@ -9,7 +9,7 @@ Imports System.Runtime.InteropServices
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("XHOTAS - Calibrator")> 
-<Assembly: AssemblyDescription("Herramiente de calibrado y prueba")> 
+<Assembly: AssemblyDescription("Herramienta de calibrado y prueba")> 
 <Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("XHOTAS Driver")> 
 <Assembly: AssemblyCopyright("© Alfredo Costalago. All rights reserved")> 

@@ -6,12 +6,20 @@ HF_InternIoCtl (
 
 #ifdef _IOCTL_
 
-typedef struct _READ_CONTEXT{
-    
-    KDPC			ReadTimerDpc;
-    KTIMER			ReadTimer;
-    PIRP			Irp;
-	PDEVICE_OBJECT	DeviceObject;
+typedef struct _READ_WORKITEM
+{
+    PIO_WORKITEM      WorkItem;
+    PDEVICE_EXTENSION DeviceExtension;
+} READ_WORKITEM, *PREAD_WORKITEM;
+typedef struct _READ_CONTEXT
+{   
+//    KDPC			ReadTimerDpc;
+//    KTIMER			ReadTimer;
+//    PIRP			Irp;
+//	PDEVICE_OBJECT	DeviceObject;
+	KEVENT				Ev;
+	PETHREAD			Hilo;
+	PDEVICE_EXTENSION	DeviceExtension;
   
 } READ_CONTEXT, * PREAD_CONTEXT;
 
@@ -21,12 +29,13 @@ ReadReport(
     IN PIRP Irp
     );
 
+VOID
+WIReadReport(
+	IN PDEVICE_OBJECT DevObj,
+	IN PVOID Context
+	);
+
 VOID 
-DpcRoutineLectura(   
-    IN PKDPC Dpc,
-    IN PVOID DeferredContext,
-    IN PVOID SystemArgument1,
-    IN PVOID SystemArgument2
-    );
+DpcRoutineLectura(IN PVOID Context);
 
 #endif

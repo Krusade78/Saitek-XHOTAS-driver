@@ -188,9 +188,24 @@ __declspec(dllexport) char CargarMapa(wchar_t* archivo)
 	if(driver!=INVALID_HANDLE_VALUE) {
 		char texto[18];
 		const char linea[]="";
+		RtlZeroMemory(texto,18);
+		int p1 = -1, p2 = -1, p = wcslen(archivo)-1;
+		wchar_t* pc = &archivo[wcslen(archivo)-1];
+		while( p>-1 )
+		{
+			if( wcsncmp(pc, L".",1)==0 ) p2 = p;
+			if( wcsncmp(pc, L"\\",1)==0 ) { p1 = p; break; }
+			p--;
+			pc = CharPrev(archivo, pc);
+		}
+		if( p1!=-1 && p2!=-1) {
+			WideCharToMultiByte(20127, 0, &archivo[p1+1], p2-p1-1, &texto[1], 16, NULL, NULL);
+		} else {
+			RtlCopyMemory(&texto[1],linea,sizeof(linea));
+		}
 		texto[0]=1;
-		RtlCopyMemory(&texto[1],linea,sizeof(linea));
 		DeviceIoControl(driver,IOCTL_TEXTO,texto,strlen(texto),NULL,0,&ret,NULL);
+		RtlCopyMemory(&texto[1],linea,sizeof(linea));
 		texto[0]=2;
 		DeviceIoControl(driver,IOCTL_TEXTO,texto,strlen(texto),NULL,0,&ret,NULL);
 		texto[0]=3;

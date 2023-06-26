@@ -43,7 +43,7 @@ Public Class EditorMacros
                 Dim st As String = TextBoxNombre.Text.Trim()
                 If st.Length > 16 Then st = st.Substring(0, 16)
                 For i As Integer = idc + 1 To macro.Count - 2
-                    comando = 24 + (CInt(System.Text.ASCIIEncoding.ASCII.GetBytes(st)(i - idc - 1)) << 8)
+                    comando = 24 + (CInt(System.Text.Encoding.GetEncoding(20127).GetBytes(st)(i - idc - 1)) << 8)
                     If comando <> macro(i) Then
                         nombreOk = False
                         Exit For

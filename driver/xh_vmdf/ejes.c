@@ -187,6 +187,7 @@ VOID Calibrado(PITFDEVICE_EXTENSION idevExt, PHID_INPUT_DATA datosHID, BOOLEAN e
 VOID SensibilidadYMapeado(
 			PITFDEVICE_EXTENSION devExt,
 			BOOLEAN esX52,
+			PHID_INPUT_DATA viejo,
 			PHID_INPUT_DATA entrada,
 			PHID_INPUT_DATA salida
 			)
@@ -201,7 +202,13 @@ VOID SensibilidadYMapeado(
 	UINT16 stope;
 	UINT16* topes;
 	KIRQL irql;
+
+	HID_INPUT_DATA nuevoHID;
+	RtlCopyMemory(&nuevoHID,entrada,sizeof(HID_INPUT_DATA));
+
 	if(esX52) topes=topesX52; else topes=topesX36;
+
+
 #ifdef PRO
 	//Sensibilidad
 	for(idx=0;idx<4;idx++) {
@@ -255,26 +262,33 @@ VOID SensibilidadYMapeado(
 				salida->MiniStick&=(nEje==8)?0xf0:0x0f; 
 				salida->MiniStick|=( ( ((*((USHORT*)&entrada->Ejes[idx*2]))* topes[nEje-1])/ topes[idx] )<<(4*(nEje-8)) );
 			} else {
-				KIRQL irql;
-				if( *((UINT16*)&entrada->Ejes[idx]) == (topes[idx]/2) ) {
-					KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-						devExt->vDevExt->stRaton[nEje-9]=0;
-					KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
-				} else if( *((UINT16*)&entrada->Ejes[idx]) < (topes[idx]/2) ) {
-					if( *((UINT16*)&entrada->Ejes[idx]) == 0) {
-						KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-							devExt->vDevExt->stRaton[nEje-9]=-sRaton;
-						KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
+				if( *((USHORT*)&nuevoHID.Ejes[idx*2])!= *((USHORT*)&viejo->Ejes[idx*2]) ) {
+					//KIRQL irql;
+					if( *((UINT16*)&entrada->Ejes[idx]) == (topes[idx]/2) ) {
+						//KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
+							//devExt->vDevExt->stRaton[nEje-9]=0;
+							AccionRaton(devExt, nEje-9, 0);
+						//KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
+					} else if( *((UINT16*)&entrada->Ejes[idx]) < (topes[idx]/2) ) {
+						//KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
+							//devExt->vDevExt->stRaton[nEje-9]=(*((UINT16*)&entrada->Ejes[idx*2])*sRaton)/(topes[idx]/2);
+							//devExt->vDevExt->stRaton[nEje-9]*=-1;
+						if(invertido) {
+							AccionRaton(devExt, nEje-9, ( ((topes[idx]/2)-(*((UINT16*)&entrada->Ejes[idx*2]))) *sRaton) /(topes[idx]/2) );
+						}else{
+							AccionRaton(devExt, nEje-9, -(( ((topes[idx]/2)-(*((UINT16*)&entrada->Ejes[idx*2]))) *sRaton)/(topes[idx]/2)) );
+						}
+						//KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
 					} else {
-						KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-							devExt->vDevExt->stRaton[nEje-9]=(*((UINT16*)&entrada->Ejes[idx*2])*sRaton)/(topes[idx]/2);
-							devExt->vDevExt->stRaton[nEje-9]*=-1;
-						KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
+						//KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
+							//devExt->vDevExt->stRaton[nEje-9]=((*((UINT16*)&entrada->Ejes[idx*2])-(topes[idx]/2))*sRaton)/(topes[idx]/2);
+							if(invertido) {
+								AccionRaton(devExt, nEje-9, -(((*((UINT16*)&entrada->Ejes[idx*2])-(topes[idx]/2))*sRaton)/(topes[idx]/2)) );
+							} else {
+								AccionRaton(devExt, nEje-9, ((*((UINT16*)&entrada->Ejes[idx*2])-(topes[idx]/2))*sRaton)/(topes[idx]/2) );
+							}
+						//KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
 					}
-				} else {
-					KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-						devExt->vDevExt->stRaton[nEje-9]=((*((UINT16*)&entrada->Ejes[idx*2])-(topes[idx]/2))*sRaton)/(topes[idx]/2);
-					KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
 				}
 			}
 			if(invertido) {
@@ -282,12 +296,12 @@ VOID SensibilidadYMapeado(
 					*((USHORT*)&salida->Ejes[(nEje-1)*2])=topes[nEje-1]-( *((USHORT*)&salida->Ejes[(nEje-1)*2]) );
 				} else if(nEje<10) {
 					salida->MiniStick=15-salida->MiniStick;
-				} else {
+				}/* else {
 					KIRQL irql;
 					KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
 						devExt->vDevExt->stRaton[nEje-9]*=-1;
 					KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
-				}
+				}*/
 			}
 		}
 	}
@@ -308,26 +322,33 @@ VOID SensibilidadYMapeado(
 					salida->MiniStick&=(nEje==8)?0xf0:0x0f; 
 					salida->MiniStick|=((idx==0)?(entrada->MiniStick&0xf):(entrada->MiniStick>>4))<<(4*(nEje-8));
 				} else {
-					KIRQL irql;
-					if( ((entrada->MiniStick>>(4*(nEje-10)))&0xf) == 8 ) {
-						KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-							devExt->vDevExt->stRaton[nEje-9]=0;
-						KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
-					} else if( ((entrada->MiniStick>>(4*(nEje-10)))&0xf) < 8 ) {
-						if( ((entrada->MiniStick>>(4*(nEje-10)))&0xf)==0) {
-							KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-								devExt->vDevExt->stRaton[nEje-9]=-sRaton;
-							KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
+					if( nuevoHID.MiniStick != viejo->MiniStick ) {
+						//KIRQL irql;
+						if( ((entrada->MiniStick>>(4*(nEje-10)))&0xf) == 8 ) {
+							//KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
+								//devExt->vDevExt->stRaton[nEje-9]=0;
+								AccionRaton(devExt, nEje-9, 0);
+							//KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
+						} else if( ((entrada->MiniStick>>(4*(nEje-10)))&0xf) < 8 ) {
+							//KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
+								//devExt->vDevExt->stRaton[nEje-9]=(((entrada->MiniStick>>(4*(nEje-10)))&0xf)*sRaton)/(15/2);
+								//devExt->vDevExt->stRaton[nEje-9]*=-1;
+								if(invertido) {
+									AccionRaton(devExt, nEje-9, ( (8-((entrada->MiniStick>>(4*(nEje-10)))&0xf)) *sRaton) /8 );
+								}else{
+									AccionRaton(devExt, nEje-9, -( ( (8-((entrada->MiniStick>>(4*(nEje-10)))&0xf)) *sRaton) /8) );
+								}
+							//KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
 						} else {
-							KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-								devExt->vDevExt->stRaton[nEje-9]=(((entrada->MiniStick>>(4*(nEje-10)))&0xf)*sRaton)/(15/2);
-								devExt->vDevExt->stRaton[nEje-9]*=-1;
-							KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
+							//KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
+								//devExt->vDevExt->stRaton[nEje-9]=( (((entrada->MiniStick>>(4*(nEje-10)))&0xf)-(15/2))*sRaton )/(15/2);
+								if(invertido) {
+									AccionRaton(devExt, nEje-9, -( ( (((entrada->MiniStick>>(4*(nEje-10)))&0xf)-8)*sRaton )/7 ) );
+								} else {
+									AccionRaton(devExt, nEje-9, ( (((entrada->MiniStick>>(4*(nEje-10)))&0xf)-8)*sRaton )/7 );
+								}
+							//KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
 						}
-					} else {
-						KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
-							devExt->vDevExt->stRaton[nEje-9]=( (((entrada->MiniStick>>(4*(nEje-10)))&0xf)-(15/2))*sRaton )/(15/2);
-						KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
 					}
 				}
 				if(invertido) {
@@ -335,12 +356,13 @@ VOID SensibilidadYMapeado(
 						*((USHORT*)&salida->Ejes[(nEje-1)*2])=topes[nEje-1]-( *((USHORT*)&salida->Ejes[(nEje-1)*2]) );
 					} else if(nEje<10) {
 						salida->MiniStick=15-salida->MiniStick;
-					} else {
+					}/* else {
 						KIRQL irql;
 						KeAcquireSpinLock(&devExt->vDevExt->slRaton,&irql);
 							devExt->vDevExt->stRaton[nEje-9]*=-1;
 						KeReleaseSpinLock(&devExt->vDevExt->slRaton,irql);
-					}
+						KeSetEvent(&devExt->evAccion,0,FALSE);
+					}*/
 				}
 			}
 		}
@@ -370,6 +392,73 @@ VOID AccionEje
 	KeReleaseSpinLock(&idevExt->slMapas,irql);
 
 	if(cambio!=0) Accionar(devExt,accionID,0);
+}
+
+VOID AccionRaton
+(
+	PITFDEVICE_EXTENSION idevExt,
+	UCHAR eje,
+	CHAR mov
+	)
+{
+	PCOLA eventos=ColaCrear();
+	struct {
+		UCHAR tipo;
+		UCHAR dato;
+	} accion;
+
+	if(eje==1) {
+		if(mov==0) {
+			accion.tipo = 32+4;
+			accion.dato = 0;
+		} else {
+			if(mov>=0) {
+				accion.tipo = 5;
+				accion.dato = mov;
+			} else {
+				accion.tipo = 4;
+				accion.dato = -mov;
+			}
+		}
+	} else {
+		if(mov==0) {
+			accion.tipo = 32+6;
+			accion.dato = 0;
+		} else {
+			if(mov>=0) {
+				accion.tipo = 7;
+				accion.dato = mov;
+			} else {
+				accion.tipo = 6;
+				accion.dato = -mov;
+			}
+		}
+	}
+
+	if(eventos!=NULL) {
+			PVOID evt=ExAllocatePoolWithTag(NonPagedPool, 
+					                        sizeof(UCHAR)*2, // Tamaño de un evento
+							                (ULONG)'vepV'
+					                        );
+			if(evt!=NULL) {
+				RtlCopyMemory(evt,&accion,sizeof(UCHAR)*2);
+				if(!ColaPush(eventos,evt)) {
+					ExFreePoolWithTag(evt,(ULONG)'vepV');
+					ColaBorrar(eventos);
+				} else {
+					KIRQL irql;
+					KeAcquireSpinLock(&idevExt->vDevExt->slListaAcciones,&irql);
+					if(!ColaPush(&idevExt->vDevExt->ListaAcciones,eventos)) {
+						ColaBorrar(eventos);
+					} else {
+						KeSetEvent(&idevExt->vDevExt->evAccion,0,FALSE);
+					}
+					KeReleaseSpinLock(&idevExt->vDevExt->slListaAcciones,irql);
+				}
+			} else {
+				ColaBorrar(eventos);
+			}
+	}
 }
 
 
